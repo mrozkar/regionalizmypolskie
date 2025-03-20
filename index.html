@@ -462,12 +462,22 @@ function resetujPodswietlenie() {
 
 // Funkcja ładująca wszystkie słowa na start
 function zaladujWszystkieSlowa() {
-    fetch('combined_data.json')
+    fetch('regionalizmy2.json')
         .then(response => response.json())
         .then(data => {
             wyswietlListeSlow(data);
         })
         .catch(error => console.error('Błąd przy ładowaniu danych:', error));
+}
+
+function przewinDoSlowa(slowo) {
+    const slowoElement = document.getElementById(slowo); // Załóżmy, że każde słowo ma unikalne ID
+    if (slowoElement) {
+        slowoElement.scrollIntoView({
+            behavior: 'smooth', // Płynne przewinięcie
+            block: 'start' // Przewinie w taki sposób, aby element znalazł się na górze ekranu
+        });
+    }
 }
 
 // Funkcja wyświetlająca listę słów
@@ -513,17 +523,31 @@ function wyswietlListeSlow(words) {
     }
 }
 
-// Funkcja wyświetlająca szczegóły wybranego słowa
 function wyswietlSzczegolySlowa(wordObj) {
     const wordDetails = document.getElementById('wordDetails');
-    wordDetails.innerHTML = `
-        <h3>${wordObj.word}</h3>
-        <p><strong>Znaczenie:</strong> ${wordObj.meaning || "Brak danych"}</p>
-        <p><strong>Przykład:</strong> ${wordObj.example && wordObj.example !== "null" ? wordObj.example : "Brak przykładu"}</p>
-        <p><strong>Obszar:</strong> ${wordObj.area || "Nieznany"}</p>
-        <p><strong>Lokalizacja:</strong> ${wordObj.location || "Nieznana"}</p>
-    `;
+
+    // Sprawdzanie, czy 'zob' jest tablicą i czy nie jest pusta
+    if (Array.isArray(wordObj.zob) && wordObj.zob.length > 0) {
+        wordDetails.innerHTML = `
+            <h3>${wordObj.word}</h3>
+            <p><strong>Znaczenie:</strong> ${wordObj.meaning || "Brak danych"}</p>
+            <p><strong>Przykład:</strong> ${wordObj.example && wordObj.example !== "null" ? wordObj.example : "Brak przykładu"}</p>
+            <p><strong>Lokalizacja:</strong> ${wordObj.location || "Nieznany"}</p>
+            <p><strong>Autor:</strong> ${wordObj.author || "Nieznany"}</p>
+            
+        `;
+    } else {
+        // Jeśli 'zob' jest pusta lub nie istnieje, po prostu wyświetl dane bez sekcji 'Zobacz też'
+        wordDetails.innerHTML = `
+            <h3>${wordObj.word}</h3>
+            <p><strong>Znaczenie:</strong> ${wordObj.meaning || "Brak danych"}</p>
+            <p><strong>Przykład:</strong> ${wordObj.example && wordObj.example !== "null" ? wordObj.example : "Brak przykładu"}</p>
+            <p><strong>Lokalizacja:</strong> ${wordObj.location || "Nieznany"}</p>
+            <p><strong>Autor:</strong> ${wordObj.author || "Nieznany"}</p>
+        `;
+    }
 }
+
 
 // Funkcja podświetlająca województwa na podstawie obszaru i lokalizacji słowa
 function podswietlWojewodztwa(area, location) {
@@ -596,7 +620,7 @@ function resetujWszystko() {
 document.getElementById("resetButton").addEventListener("click", resetujWszystko);
 
 document.getElementById('losujButton').addEventListener('click', () => {
-    fetch('combined_data.json')
+    fetch('regionalizmy2.json')
         .then(response => response.json())
         .then(data => {
             if (data.length === 0) return;
@@ -614,9 +638,30 @@ document.getElementById('losujButton').addEventListener('click', () => {
             // Automatyczne podświetlenie województwa i wyświetlenie detali
             podswietlWojewodztwa(randomWord.area, randomWord.location);
             wyswietlSzczegolySlowa(randomWord);
+
+            // Przewinięcie do wylosowanego słowa
+            console.log(randomWord.word)
+            scrollToWord(randomWord.word);
         })
         .catch(error => console.error('Błąd przy ładowaniu danych:', error));
 });
+
+// Funkcja przewijająca stronę do wybranego słowa
+function scrollToWord(word) {
+    const wordItems = document.querySelectorAll('.word-item');  // Pobierz wszystkie elementy z klasą 'word-item'
+
+    // Przechodzimy przez wszystkie elementy i szukamy tego, który zawiera w sobie słowo
+    for (let item of wordItems) {
+        if (item.textContent.toLowerCase() === word.toLowerCase()) {
+            item.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+            break;  // Po znalezieniu pasującego słowa przerywamy pętlę
+        }
+    }
+}
+
 
 
 // Załaduj wszystkie słowa przy uruchomieniu strony
